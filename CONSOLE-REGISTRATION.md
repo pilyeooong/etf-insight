@@ -124,7 +124,7 @@ ETF, 이티에프, 미국ETF, 배당ETF, S&P500, 나스닥, 반도체ETF, 괴리
 - [ ] **콘솔에서 광고 그룹 생성 → prod ID를 `.env`(`VITE_AD_*`)에 주입**
 - [x] 외부 링크·자사앱 유도 없음, 로그인·결제 없음
 - [x] 투자 자문 아님 디스클레이머 — 상세 화면 하단 포함
-- [x] `cd frontend && npx ait build` → `.ait` 번들 생성 (`etf-tracker.ait`)
+- [x] `cd frontend && npx ait build` → `.ait` 번들 생성 (`etf-insight.ait`)
 - [ ] 콘솔 등록 (워크스페이스 → 앱 등록 → 메타데이터·자료 업로드 → 앱 내 기능 ≥1 → 광고 그룹 → 검토 요청)
 
 ## 정책 메모
