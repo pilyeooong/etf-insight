@@ -1,0 +1,21 @@
+# secrets
+crawler/.env
+frontend/.env
+frontend/.env.local
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# node / build
+frontend/node_modules/
+frontend/dist/
+frontend/.granite/
+*.tsbuildinfo
+
+# os / editor / tooling
+.DS_Store
+.idea/
+.omc/
+.playwright-mcp/

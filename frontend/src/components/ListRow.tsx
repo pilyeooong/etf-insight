@@ -1,0 +1,50 @@
+import { useNavigate } from 'react-router-dom';
+import { fmt, pct, signColor } from '@/lib/format';
+import type { EtfListRow } from '@/types/etf';
+
+export function ListRow({ row }: { row: EtfListRow }) {
+  const navigate = useNavigate();
+  const name = row.etf_meta?.name ?? row.code;
+  return (
+    <button
+      onClick={() => navigate(`/etf/${row.code}`)}
+      style={{
+        display: 'flex',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '14px 4px',
+        borderBottom: '1px solid #f2f4f6',
+        background: 'none',
+        border: 'none',
+        borderBottomStyle: 'solid',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <div style={{ minWidth: 0, paddingRight: 12 }}>
+        <div
+          style={{
+            fontWeight: 600,
+            fontSize: 15,
+            color: '#191f28',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {name}
+        </div>
+        <div style={{ fontSize: 12, color: '#8b95a1', marginTop: 2 }}>
+          {row.code} · {row.etf_meta?.category ?? '-'}
+        </div>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 15, color: '#191f28' }}>{fmt(row.close)}원</div>
+        <div style={{ fontSize: 12, color: signColor(row.change_pct), marginTop: 2 }}>
+          {pct(row.change_pct)} · 괴리 {pct(row.premium_pct)}
+        </div>
+      </div>
+    </button>
+  );
+}
