@@ -9,7 +9,7 @@
 | 한국어 앱 이름 | `ETF 인사이트` |
 | 영어 앱 이름 | `ETF Insight` |
 | 부제 (≤20자) | `국내·미국 ETF 한눈에` (13자) |
-| appName (영구) | `etf-tracker` |
+| appName (영구) | `etf-insight` |
 | 사용 연령 | 만 19세 이상 |
 | 고객센터 이메일 | (본인 이메일 입력) |
 
@@ -61,13 +61,13 @@
 |---|---|---|
 | 한국어 기능 이름 | `오늘의 ETF` | 7자, 명사형 |
 | 영어 기능 이름 | `Etf today` | 9자, 첫 글자만 대문자 |
-| 이동 URL | `intoss://etf-tracker/` | 홈(인덱스) 진입 |
+| 이동 URL | `intoss://etf-insight/` | 홈(인덱스) 진입 |
 
-> ⚠️ **현재 앱은 HashRouter**라 `intoss://etf-tracker/search` 같은 **하위 경로 딥링크는 홈으로 떨어짐**. 하위 기능 딥링크(예: 검색 바로가기)를 등록하려면 BrowserRouter로 전환 필요. 우선 홈 진입 1개로 출시하고, 딥링크 기능은 후속으로.
+> ⚠️ **현재 앱은 HashRouter**라 `intoss://etf-insight/search` 같은 **하위 경로 딥링크는 홈으로 떨어짐**. 하위 기능 딥링크(예: 검색 바로가기)를 등록하려면 BrowserRouter로 전환 필요. 우선 홈 진입 1개로 출시하고, 딥링크 기능은 후속으로.
 
 ### 대안 후보
 - 한 `ETF 둘러보기` / 영 `Browse etf`
-- 한 `ETF 검색` / 영 `Etf search` (BrowserRouter 전환 후 `intoss://etf-tracker/search`)
+- 한 `ETF 검색` / 영 `Etf search` (BrowserRouter 전환 후 `intoss://etf-insight/search`)
 
 ## 검색 키워드
 

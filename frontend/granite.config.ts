@@ -1,7 +1,7 @@
 import { defineConfig } from '@apps-in-toss/web-framework/config';
 
 export default defineConfig({
-  appName: 'etf-tracker',
+  appName: 'etf-insight',
   brand: {
     displayName: 'ETF 인사이트',
     primaryColor: '#3182F6',
