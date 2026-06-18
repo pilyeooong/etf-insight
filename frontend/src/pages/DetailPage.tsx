@@ -24,7 +24,10 @@ const SECTOR_LABEL: Record<string, string> = {
   UTILITIES: '유틸리티',
   REAL_ESTATE: '부동산',
   ETC: '기타',
+  Other: '기타',
 };
+// 섹터 합산이 안 맞는 잔여/미분류 버킷(가중치 음수·100% 초과)은 노이즈라 숨김
+const SECTOR_EXCLUDE = new Set(['UNCLASSIFIED']);
 
 export function DetailPage() {
   const { code = '' } = useParams();
@@ -41,6 +44,11 @@ export function DetailPage() {
   const periods: PeriodReturn[] = (detail?.returns ?? []).filter((r) =>
     PERIOD_LABEL[r.period],
   );
+  // 섹터는 0%/null 슬라이스 제외(상품형·채권형은 섹터가 전부 0이라 노이즈)
+  const sectors: PortfolioSlice[] = (detail?.sector_portfolio ?? [])
+    .filter((s) => (s.weight ?? 0) > 0 && !SECTOR_EXCLUDE.has(s.code ?? ''))
+    .slice(0, 8);
+  const sourceNote = isUS ? '네이버 금융, stockanalysis.com' : '네이버 금융';
 
   return (
     <div style={{ padding: '8px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
@@ -71,7 +79,7 @@ export function DetailPage() {
       {/* KR만 NAV/괴리율/추적오차 (미국 ETF는 무의미) */}
       {!isUS && (
         <div style={{ fontSize: 13, color: '#8b95a1', marginBottom: 16 }}>
-          NAV {fmt(detail?.nav ?? quote?.nav)}원 · 괴리율{' '}
+          NAV {fmt(quote?.nav ?? detail?.nav)}원 · 괴리율{' '}
           <b style={{ color: signColor(quote?.premium_pct) }}>{pct(quote?.premium_pct)}</b>
           {detail?.chase_error_rate != null && <> · 추적오차 {pct(detail.chase_error_rate)}</>}
         </div>
@@ -119,19 +127,19 @@ export function DetailPage() {
         </Section>
       )}
 
-      {/* 구성종목 TOP10 */}
+      {/* 주요 구성종목 */}
       {holdings.length > 0 && (
-        <Section title={`구성종목 TOP${holdings.length}`}>
+        <Section title="주요 구성종목">
           {holdings.map((h) => (
             <WeightBar key={`${h.stock_code}-${h.stock_name}`} name={h.stock_name} weight={h.weight} />
           ))}
         </Section>
       )}
 
-      {/* 섹터 비중 */}
-      {detail?.sector_portfolio && detail.sector_portfolio.length > 0 && (
+      {/* 섹터 비중 (0% 슬라이스 제외) */}
+      {sectors.length > 0 && (
         <Section title="섹터 비중">
-          {detail.sector_portfolio.slice(0, 8).map((s: PortfolioSlice) => (
+          {sectors.map((s) => (
             <WeightBar key={s.code} name={SECTOR_LABEL[s.code ?? ''] ?? s.code ?? '-'} weight={s.weight} />
           ))}
         </Section>
@@ -151,23 +159,26 @@ export function DetailPage() {
 
       <p style={{ fontSize: 11, color: '#b0b8c1', lineHeight: 1.6, marginTop: 20 }}>
         모든 수치는 참고용 추정치이며 실제와 다를 수 있습니다. 본 정보는 투자 권유가 아니며, 투자 판단의
-        책임은 이용자 본인에게 있습니다. 데이터 출처: 네이버 금융.
+        책임은 이용자 본인에게 있습니다. 데이터 출처: {sourceNote}.
       </p>
     </div>
   );
 }
 
 function WeightBar({ name, weight }: { name: string; weight: number | null }) {
-  const w = weight ?? 0;
+  const hasWeight = weight != null;
   return (
     <div style={{ margin: '9px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: hasWeight ? 4 : 0 }}>
         <span style={{ color: '#191f28', fontWeight: 500 }}>{name}</span>
-        <span style={{ color: '#4e5968', fontWeight: 600 }}>{weight != null ? `${weight}%` : '-'}</span>
+        {hasWeight && <span style={{ color: '#4e5968', fontWeight: 600 }}>{weight}%</span>}
       </div>
-      <div style={{ height: 6, background: '#f2f4f6', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.min(w, 100)}%`, height: '100%', background: '#3182f6', borderRadius: 3 }} />
-      </div>
+      {/* 비중 값이 없으면(현금·선물 등) 빈 막대 대신 이름만 표시 */}
+      {hasWeight && (
+        <div style={{ height: 6, background: '#f2f4f6', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ width: `${Math.min(weight, 100)}%`, height: '100%', background: '#3182f6', borderRadius: 3 }} />
+        </div>
+      )}
     </div>
   );
 }

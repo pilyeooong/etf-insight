@@ -6,7 +6,6 @@ import type {
   Market,
   EtfMeta,
   EtfQuote,
-  EtfRisk,
 } from '@/types/etf';
 
 const LIST_SELECT =
@@ -79,24 +78,21 @@ export interface DetailBundle {
   meta: EtfMeta | null;
   quote: EtfQuote | null;
   detail: EtfDetail | null;
-  risk: EtfRisk | null;
   holdings: EtfHolding[];
 }
 
 export async function fetchDetailBundle(code: string): Promise<DetailBundle> {
   const c = encodeURIComponent(code);
-  const [meta, quote, detail, risk, holdings] = await Promise.all([
+  const [meta, quote, detail, holdings] = await Promise.all([
     selectFrom('etf_meta', `select=*&code=eq.${c}&limit=1`),
     selectFrom('etf_daily_quote', `select=*&code=eq.${c}&order=date.desc&limit=1`),
     selectFrom('etf_detail', `select=*&code=eq.${c}&limit=1`),
-    selectFrom('etf_risk', `select=*&code=eq.${c}&limit=1`),
     selectFrom('etf_holding', `select=*&code=eq.${c}&order=seq.asc`),
   ]);
   return {
     meta: meta[0] ?? null,
     quote: quote[0] ?? null,
     detail: detail[0] ?? null,
-    risk: risk[0] ?? null,
     holdings,
   };
 }
