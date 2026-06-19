@@ -4,6 +4,7 @@ import { colors } from '@toss/tds-colors';
 import { BannerSlot } from '@/components/BannerSlot';
 import { BackIcon } from '@/components/icons';
 import { DonutChart } from '@/components/DonutChart';
+import { DeepAnalysisSection } from '@/components/DeepAnalysis';
 import { AD_IDS } from '@/lib/ads';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchDetailBundle } from '@/lib/queries';
@@ -187,6 +188,9 @@ export function DetailPage() {
           <DonutChart data={sectorSlices} centerLabel={String(sectorSlices.length)} centerSub="섹터" />
         </Section>
       )}
+
+      {/* 심화 분석 (리워드 게이트) — 동종 그룹 위치 + 구성 집중도 */}
+      <DeepAnalysisSection meta={meta} detail={detail} holdings={holdings} />
 
       {/* 설명 */}
       {detail?.summary && (

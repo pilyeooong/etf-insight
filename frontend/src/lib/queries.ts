@@ -106,6 +106,104 @@ export async function fetchCompareData(codes: string[]): Promise<DetailBundle[]>
   return Promise.all(codes.map(fetchDetailBundle));
 }
 
+// ── 심화 분석: 동종 그룹(기초지수 우선, 없으면 카테고리) 내 상대 위치 산출 ──
+export interface PeerMetric {
+  key: string;
+  label: string;
+  value: number;
+  rank: number; // 1 = best (총보수·추적오차는 낮을수록, 분배수익률은 높을수록)
+  total: number;
+  min: number;
+  max: number;
+  better: 'low' | 'high';
+}
+export interface PeerComparison {
+  groupLabel: string;
+  count: number;
+  metrics: PeerMetric[];
+}
+
+interface PeerMetaRow {
+  code: string;
+  fee_pct: number | null;
+}
+interface PeerDetailRow {
+  code: string;
+  dividend_yield: number | null;
+  chase_error_rate: number | null;
+}
+
+export async function fetchPeerComparison(
+  meta: EtfMeta,
+  detail: EtfDetail | null,
+): Promise<PeerComparison | null> {
+  const market = meta.market;
+  let groupLabel = '';
+  let peers: PeerMetaRow[] = [];
+
+  // 1순위: 같은 기초지수 (3개 이상일 때만)
+  if (meta.base_index) {
+    const enc = encodeURIComponent(meta.base_index);
+    peers = await selectFrom(
+      'etf_meta',
+      `select=code,fee_pct&base_index=eq.${enc}&market=eq.${market}&limit=500`,
+    );
+    if (peers.length >= 3) groupLabel = meta.base_index;
+  }
+  // 폴백: 같은 카테고리
+  if (!groupLabel) {
+    if (!meta.category) return null;
+    const enc = encodeURIComponent(meta.category);
+    peers = await selectFrom(
+      'etf_meta',
+      `select=code,fee_pct&category=eq.${enc}&market=eq.${market}&limit=500`,
+    );
+    if (peers.length < 3) return null;
+    groupLabel = meta.category;
+  }
+
+  const codes = peers.map((p) => p.code);
+  const inList = `(${codes.map(encodeURIComponent).join(',')})`;
+  const details: PeerDetailRow[] = await selectFrom(
+    'etf_detail',
+    `select=code,dividend_yield,chase_error_rate&code=in.${inList}&limit=500`,
+  );
+  const dmap = new Map(details.map((d) => [d.code, d]));
+
+  const feeVals = peers.map((p) => p.fee_pct).filter((v): v is number => v != null);
+  const yieldVals = peers
+    .map((p) => dmap.get(p.code)?.dividend_yield)
+    .filter((v): v is number => v != null);
+  const trackVals = peers
+    .map((p) => dmap.get(p.code)?.chase_error_rate)
+    .filter((v): v is number => v != null);
+
+  const metrics: PeerMetric[] = [];
+  const add = (
+    key: string,
+    label: string,
+    value: number | null,
+    vals: number[],
+    better: 'low' | 'high',
+  ) => {
+    if (value == null || vals.length < 3) return;
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const rank =
+      better === 'low'
+        ? vals.filter((v) => v < value).length + 1
+        : vals.filter((v) => v > value).length + 1;
+    metrics.push({ key, label, value, rank, total: vals.length, min, max, better });
+  };
+
+  add('fee', '총보수', meta.fee_pct, feeVals, 'low');
+  add('yield', '분배수익률', detail?.dividend_yield ?? null, yieldVals, 'high');
+  if (market === 'KR') add('track', '추적오차', detail?.chase_error_rate ?? null, trackVals, 'low');
+
+  if (metrics.length === 0) return null;
+  return { groupLabel, count: peers.length, metrics };
+}
+
 export async function fetchDetailBundle(code: string): Promise<DetailBundle> {
   const c = encodeURIComponent(code);
   const [meta, quote, detail, holdings] = await Promise.all([

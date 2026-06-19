@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { List, ListRow as TdsListRow, Text, TextField } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
-import { AdGate } from '@/components/AdGate';
 import { LoadMore } from '@/components/LoadMore';
 import { FilterChips } from '@/components/FilterChips';
 import { MarketToggle } from '@/components/MarketToggle';
@@ -94,11 +93,11 @@ export function ComparePage() {
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState<string | null>(null);
   const [theme, setTheme] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
 
   const codes = picked.map((p) => p.code);
   const codesKey = codes.join(',');
   const isSearching = Boolean(query.trim() || tag || theme);
+  const canCompare = codes.length >= 2;
 
   const [browseMarket, setBrowseMarket] = useState<Market>('KR');
   const browseFetch = useCallback(
@@ -109,14 +108,13 @@ export function ComparePage() {
 
   const search = useAsync(() => searchEtfs(theme ?? query, tag), [query, tag, theme]);
   const compare = useAsync(
-    () => (revealed && codes.length >= 2 ? fetchCompareData(codes) : Promise.resolve([])),
-    [revealed, codesKey],
+    () => (codes.length >= 2 ? fetchCompareData(codes) : Promise.resolve([])),
+    [codesKey],
   );
 
   const add = (code: string, name: string) => {
     if (picked.length >= MAX || picked.some((p) => p.code === code)) return;
     setPicked((cur) => [...cur, { code, name }]);
-    setRevealed(false);
     setInput('');
     setQuery('');
     setTag(null);
@@ -124,7 +122,6 @@ export function ComparePage() {
   };
   const remove = (code: string) => {
     setPicked((cur) => cur.filter((p) => p.code !== code));
-    setRevealed(false);
   };
 
   return (
@@ -168,22 +165,30 @@ export function ComparePage() {
         </div>
       )}
 
-      {/* 비교 실행 (리워드 게이트) — 2개 이상이면 칩 바로 아래에 노출(리스트에 묻히지 않게) */}
-      {codes.length >= 2 && !revealed && (
-        <div style={{ marginBottom: 18 }}>
-          <AdGate cta="광고 보고 비교 결과 보기" onRewardGranted={() => setRevealed(true)} />
+      {/* 비교 결과 — 2개 이상이면 칩 바로 아래에 바로 노출(무료) */}
+      {canCompare && compare.loading && (
+        <div style={{ marginTop: 8, marginBottom: 8, textAlign: 'center' }}>
+          <Text typography="t7" color={colors.grey500}>
+            불러오는 중…
+          </Text>
+        </div>
+      )}
+      {canCompare && compare.data && compare.data.length >= 2 && (
+        <div style={{ marginBottom: 12 }}>
+          <CompareTable bundles={compare.data} />
+          <OverlapSection bundles={compare.data} />
           {picked.length < MAX && (
-            <div style={{ marginTop: 8, textAlign: 'center' }}>
+            <div style={{ marginTop: 22, textAlign: 'center' }}>
               <Text typography="st13" color={colors.grey400}>
-                아래에서 {MAX}개까지 더 담을 수 있어요
+                아래에서 {MAX}개까지 더 담아 비교할 수 있어요
               </Text>
             </div>
           )}
         </div>
       )}
 
-      {/* 검색 + 둘러보기로 추가 (결과 노출 전, 3개 미만일 때) */}
-      {!revealed && picked.length < MAX && (
+      {/* 검색 + 둘러보기로 추가 (3개 미만일 때) */}
+      {picked.length < MAX && (
         <>
           <form
             onSubmit={(e) => {
@@ -251,21 +256,6 @@ export function ComparePage() {
               <LoadMore onVisible={browse.loadMore} hasMore={browse.hasMore} loading={browse.loadingMore} />
             </>
           )}
-        </>
-      )}
-
-      {/* 결과 */}
-      {revealed && compare.loading && (
-        <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <Text typography="t7" color={colors.grey500}>
-            불러오는 중…
-          </Text>
-        </div>
-      )}
-      {revealed && compare.data && compare.data.length >= 2 && (
-        <>
-          <CompareTable bundles={compare.data} />
-          <OverlapSection bundles={compare.data} />
         </>
       )}
     </div>
