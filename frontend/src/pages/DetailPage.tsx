@@ -3,6 +3,7 @@ import { Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { BannerSlot } from '@/components/BannerSlot';
 import { BackIcon } from '@/components/icons';
+import { DonutChart } from '@/components/DonutChart';
 import { AD_IDS } from '@/lib/ads';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchDetailBundle } from '@/lib/queries';
@@ -53,6 +54,15 @@ export function DetailPage() {
     .filter((s) => (s.weight ?? 0) > 0 && !SECTOR_EXCLUDE.has(s.code ?? ''))
     .slice(0, 8);
   const sourceNote = isUS ? '네이버 금융, stockanalysis.com' : '네이버 금융';
+
+  // 도넛용 슬라이스(비중 있는 항목만). 합이 100% 미만이면 도넛이 '기타'로 자동 보정.
+  const holdingSlices = holdings
+    .filter((h) => h.weight != null && h.weight > 0)
+    .map((h) => ({ name: h.stock_name, value: h.weight ?? 0 }));
+  const sectorSlices = sectors.map((s) => ({
+    name: SECTOR_LABEL[s.code ?? ''] ?? s.code ?? '-',
+    value: s.weight ?? 0,
+  }));
 
   return (
     <div style={{ padding: '8px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
@@ -151,21 +161,30 @@ export function DetailPage() {
       {/* 본문 중간 — 피드형(네이티브 이미지) 배너 */}
       <BannerSlot inline adGroupId={AD_IDS.nativeImage} />
 
-      {/* 주요 구성종목 */}
-      {holdings.length > 0 && (
+      {/* 주요 구성종목 — 비중 도넛 */}
+      {holdingSlices.length > 0 ? (
         <Section title="주요 구성종목">
-          {holdings.map((h) => (
-            <WeightBar key={`${h.stock_code}-${h.stock_name}`} name={h.stock_name} weight={h.weight} />
-          ))}
+          <DonutChart data={holdingSlices} centerLabel={String(holdingSlices.length)} centerSub="종목" />
         </Section>
+      ) : (
+        holdings.length > 0 && (
+          <Section title="주요 구성종목">
+            {/* 비중 데이터가 없는 종목(현금성·파생 등)은 이름만 */}
+            {holdings.map((h) => (
+              <div key={`${h.stock_code}-${h.stock_name}`} style={{ margin: '9px 0' }}>
+                <Text typography="st12" color={colors.grey900}>
+                  {h.stock_name}
+                </Text>
+              </div>
+            ))}
+          </Section>
+        )
       )}
 
-      {/* 섹터 비중 (0% 슬라이스 제외) */}
-      {sectors.length > 0 && (
+      {/* 섹터 비중 — 도넛 */}
+      {sectorSlices.length > 0 && (
         <Section title="섹터 비중">
-          {sectors.map((s) => (
-            <WeightBar key={s.code} name={SECTOR_LABEL[s.code ?? ''] ?? s.code ?? '-'} weight={s.weight} />
-          ))}
+          <DonutChart data={sectorSlices} centerLabel={String(sectorSlices.length)} centerSub="섹터" />
         </Section>
       )}
 
@@ -185,30 +204,6 @@ export function DetailPage() {
           책임은 이용자 본인에게 있습니다. 데이터 출처: {sourceNote}.
         </Text>
       </div>
-    </div>
-  );
-}
-
-function WeightBar({ name, weight }: { name: string; weight: number | null }) {
-  const hasWeight = weight != null;
-  return (
-    <div style={{ margin: '9px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: hasWeight ? 4 : 0 }}>
-        <Text typography="st12" color={colors.grey900}>
-          {name}
-        </Text>
-        {hasWeight && (
-          <Text typography="st12" fontWeight="bold" color={colors.grey700}>
-            {weight}%
-          </Text>
-        )}
-      </div>
-      {/* 비중 값이 없으면(현금·선물 등) 빈 막대 대신 이름만 표시 */}
-      {hasWeight && (
-        <div style={{ height: 6, background: colors.grey100, borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ width: `${Math.min(weight, 100)}%`, height: '100%', background: colors.blue500, borderRadius: 3 }} />
-        </div>
-      )}
     </div>
   );
 }
