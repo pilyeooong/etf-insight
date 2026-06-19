@@ -1,13 +1,22 @@
-// 광고 그룹 ID.
-// 개발·심사 단계에서는 반드시 테스트 ID를 사용해요(실제 ID로 테스트 시 정책 위반).
-// 출시 시 콘솔에서 발급받은 prod ID를 .env(VITE_AD_*)로 주입하면 자동 교체돼요.
+// 광고 그룹 ID — dev/prod 분기.
+// 개발·심사 단계(dev)에서는 반드시 테스트 ID를 사용해요(실제 ID로 테스트 시 정책 위반).
+// 프로덕션 빌드에서는 콘솔에서 발급받은 prod ID를 .env(VITE_AD_*)로 주입해요.
+//   - 미주입 시 테스트 ID로 폴백(노출은 되지만 수익 X) → 콘솔 발급 후 반드시 채울 것.
 
-const TEST = {
-  banner: 'ait-ad-test-banner-id',
-  interstitial: 'ait-ad-test-interstitial-id',
-};
+const IS_PROD = import.meta.env.MODE === 'production';
+
+function adId(testId: string, prodId: string | undefined): string {
+  // dev/sandbox: 항상 테스트 ID / prod: 주입된 prod ID(없으면 테스트 폴백)
+  return IS_PROD ? prodId || testId : testId;
+}
 
 export const AD_IDS = {
-  banner: import.meta.env.VITE_AD_BANNER_ID || TEST.banner,
-  interstitial: import.meta.env.VITE_AD_INTERSTITIAL_ID || TEST.interstitial,
+  // 배너 — 리스트형(텍스트 띠)
+  banner: adId('ait-ad-test-banner-id', import.meta.env.VITE_AD_BANNER_ID),
+  // 배너 — 피드형(네이티브 이미지)
+  nativeImage: adId('ait-ad-test-native-image-id', import.meta.env.VITE_AD_NATIVE_ID),
+  // 전면형
+  interstitial: adId('ait-ad-test-interstitial-id', import.meta.env.VITE_AD_INTERSTITIAL_ID),
+  // 보상형(리워드)
+  rewarded: adId('ait-ad-test-rewarded-id', import.meta.env.VITE_AD_REWARDED_ID),
 };

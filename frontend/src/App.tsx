@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
 import { HomePage } from '@/pages/HomePage';
 import { SearchPage } from '@/pages/SearchPage';
+import { ComparePage } from '@/pages/ComparePage';
 import { DetailPage } from '@/pages/DetailPage';
 import { initInterstitial } from '@/lib/interstitial';
 
@@ -18,6 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/compare" element={<ComparePage />} />
           <Route path="/etf/:code" element={<DetailPage />} />
         </Routes>
         <BottomNav />

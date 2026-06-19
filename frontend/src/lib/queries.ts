@@ -81,6 +81,11 @@ export interface DetailBundle {
   holdings: EtfHolding[];
 }
 
+// 비교용: 여러 종목의 상세 묶음을 한 번에
+export async function fetchCompareData(codes: string[]): Promise<DetailBundle[]> {
+  return Promise.all(codes.map(fetchDetailBundle));
+}
+
 export async function fetchDetailBundle(code: string): Promise<DetailBundle> {
   const c = encodeURIComponent(code);
   const [meta, quote, detail, holdings] = await Promise.all([

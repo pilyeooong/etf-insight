@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { BannerSlot } from '@/components/BannerSlot';
+import { AD_IDS } from '@/lib/ads';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchDetailBundle } from '@/lib/queries';
 import { fmt, marketCap, pct, price, signColor, won억 } from '@/lib/format';
@@ -145,6 +146,9 @@ export function DetailPage() {
         </Section>
       )}
 
+      {/* 본문 중간 — 피드형(네이티브 이미지) 배너 */}
+      <BannerSlot inline adGroupId={AD_IDS.nativeImage} />
+
       {/* 주요 구성종목 */}
       {holdings.length > 0 && (
         <Section title="주요 구성종목">
@@ -172,8 +176,6 @@ export function DetailPage() {
           />
         </Section>
       )}
-
-      <BannerSlot />
 
       <div style={{ marginTop: 20, lineHeight: 1.6 }}>
         <Text typography="st13" color={colors.grey400}>

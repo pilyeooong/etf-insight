@@ -27,3 +27,13 @@ export function SearchIcon({ size = 24, color = 'currentColor', strokeWidth = 2 
     </svg>
   );
 }
+
+export function CompareIcon({ size = 24, color = 'currentColor', strokeWidth = 2 }: IconProps) {
+  // 막대 2개(높이 다름) = 나란히 비교
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="9" width="6" height="11" rx="1.5" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round" />
+      <rect x="14" y="4" width="6" height="16" rx="1.5" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round" />
+    </svg>
+  );
+}
