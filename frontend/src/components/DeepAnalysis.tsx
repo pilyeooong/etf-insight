@@ -80,7 +80,8 @@ export function DeepAnalysis({
   market?: Market;
 }) {
   const weighted = holdings.filter((h) => h.weight != null && h.weight > 0);
-  const top10 = weighted.reduce((a, h) => a + (h.weight ?? 0), 0);
+  const topN = weighted.slice(0, 10); // 적재는 TOP10이지만 방어적으로 상위 10개로 제한
+  const top10 = topN.reduce((a, h) => a + (h.weight ?? 0), 0);
   const top3 = weighted.slice(0, 3).reduce((a, h) => a + (h.weight ?? 0), 0);
   const hasConc = weighted.length >= 3;
   const concLabel = top3 >= 55 ? '집중형' : top3 >= 30 ? '보통' : '분산형';
@@ -116,7 +117,7 @@ export function DeepAnalysis({
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <ConcCell label="상위 3종목" value={top3} />
-            <ConcCell label={`상위 ${weighted.length}종목`} value={top10} />
+            <ConcCell label={`상위 ${topN.length}종목`} value={top10} />
           </div>
           <div style={{ marginTop: 8 }}>
             <Text typography="st13" color={colors.grey400}>

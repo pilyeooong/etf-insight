@@ -33,7 +33,17 @@ async function render() {
     const root = document.getElementById('root');
     if (root) {
       const msg = err instanceof Error ? err.message : String(err);
-      root.innerHTML = `<div style="padding:24px;font-family:sans-serif"><p style="font-weight:600">앱 초기화 실패</p><pre style="font-size:12px;color:#888;white-space:pre-wrap">${msg}</pre></div>`;
+      // innerHTML 대신 노드 생성 + textContent로 메시지 주입(XSS 방지)
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding:24px;font-family:sans-serif';
+      const title = document.createElement('p');
+      title.style.fontWeight = '600';
+      title.textContent = '앱 초기화 실패';
+      const pre = document.createElement('pre');
+      pre.style.cssText = 'font-size:12px;color:#888;white-space:pre-wrap';
+      pre.textContent = msg;
+      wrap.append(title, pre);
+      root.replaceChildren(wrap);
     }
     return;
   }

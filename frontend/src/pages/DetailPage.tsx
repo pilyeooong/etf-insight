@@ -9,6 +9,7 @@ import { AD_IDS } from '@/lib/ads';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchDetailBundle } from '@/lib/queries';
 import { fmt, marketCap, pct, price, signColor, won억 } from '@/lib/format';
+import { htmlToText } from '@/lib/html';
 import type { PeriodReturn, PortfolioSlice } from '@/types/etf';
 
 const PERIOD_LABEL: Record<string, string> = {
@@ -192,13 +193,12 @@ export function DetailPage() {
       {/* 심화 분석 (리워드 게이트) — 동종 그룹 위치 + 구성 집중도 */}
       <DeepAnalysisSection meta={meta} detail={detail} holdings={holdings} />
 
-      {/* 설명 */}
+      {/* 설명 — 외부(네이버) HTML이라 raw 렌더 금지. 태그를 제거한 텍스트로 안전하게 표시. */}
       {detail?.summary && (
         <Section title="상품 설명">
-          <p
-            style={{ fontSize: 13, color: colors.grey700, lineHeight: 1.7, margin: 0 }}
-            dangerouslySetInnerHTML={{ __html: detail.summary }}
-          />
+          <p style={{ fontSize: 13, color: colors.grey700, lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
+            {htmlToText(detail.summary)}
+          </p>
         </Section>
       )}
 

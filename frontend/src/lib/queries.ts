@@ -69,7 +69,7 @@ export async function searchByHolding(query: string, limit = 40): Promise<EtfLis
   );
   const codes = [...new Set(hits.map((h) => h.code))].slice(0, limit);
   if (codes.length === 0) return [];
-  const inList = `(${codes.join(',')})`;
+  const inList = `(${codes.map(encodeURIComponent).join(',')})`;
   return selectFrom(
     'etf_daily_quote',
     `${LIST_SELECT}&date=eq.${date}&code=in.${inList}&order=volume.desc`,
@@ -115,7 +115,11 @@ export function fetchCompareData(codes: string[]): Promise<DetailBundle[]> {
     codes.map((code) => {
       let p = _bundleCache.get(code);
       if (!p) {
-        p = fetchDetailBundle(code);
+        // 실패한 Promise는 캐시에서 비워 다음 시도에 재요청되게 함(영구 stale 방지)
+        p = fetchDetailBundle(code).catch((e) => {
+          _bundleCache.delete(code);
+          throw e;
+        });
         _bundleCache.set(code, p);
       }
       return p;
