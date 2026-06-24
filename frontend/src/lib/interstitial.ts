@@ -8,11 +8,13 @@ import { showMockFullScreenAd } from '@/lib/mockAd';
 // 빠르게 검증되도록 임계값을 낮춰요(첫 1회 후, 최소 간격 15초).
 
 const FREE_VIEWS = AD_MOCK ? 1 : 3; // 세션 첫 N회 진입은 광고 없이
+const GRACE_VIEWS = AD_MOCK ? 1 : 3; // 광고 노출 후 다음 N회 진입은 유예(너무 잦은 노출 방지)
 const MIN_INTERVAL_MS = AD_MOCK ? 15_000 : 180_000; // 노출 간 최소 간격
 
 let loaded = false;
 let viewCount = 0;
 let lastShownAt = 0;
+let lastShownView = 0; // 직전 광고를 노출한 시점의 viewCount
 let showing = false;
 
 function preload() {
@@ -45,12 +47,14 @@ export function maybeShowInterstitial() {
   viewCount += 1;
   if (viewCount <= FREE_VIEWS) return;
   if (showing) return;
+  if (viewCount - lastShownView < GRACE_VIEWS) return; // 직전 광고 후 N회 진입은 유예
   if (Date.now() - lastShownAt < MIN_INTERVAL_MS) return;
 
   // dev 목 전면 광고
   if (!real) {
     showing = true;
     lastShownAt = Date.now();
+    lastShownView = viewCount;
     showMockFullScreenAd('전면', 3).finally(() => {
       showing = false;
     });
@@ -60,6 +64,7 @@ export function maybeShowInterstitial() {
   if (!loaded) return;
   loaded = false;
   lastShownAt = Date.now();
+  lastShownView = viewCount;
   showFullScreenAd({
     options: { adGroupId: AD_IDS.interstitial },
     onEvent: (e) => {

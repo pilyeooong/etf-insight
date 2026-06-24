@@ -24,6 +24,7 @@ export function freqLabel(months: number[]): string | null {
 export function flowSign(s: string | null | undefined): number {
   if (!s) return 0;
   const t = s.trim();
+  if (!/\d/.test(t)) return 0; // "-" 등 데이터 없음 → 중립(유출로 오판 방지)
   if (t.startsWith('-')) return -1;
   if (/^0(억|만|원|조)?$/.test(t) || t === '0') return 0;
   return 1;

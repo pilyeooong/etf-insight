@@ -37,12 +37,13 @@ export async function fetchTopList(
 ): Promise<EtfListRow[]> {
   const date = await latestDate();
   if (!date) return [];
+  // nullslast: change_pct/volume이 null인 종목(거래정지·신규 등)이 desc 정렬 시 상단을 점령하지 않게.
   const order =
     mode === 'volume'
-      ? 'volume.desc'
+      ? 'volume.desc.nullslast'
       : mode === 'gainers'
-        ? 'change_pct.desc'
-        : 'change_pct.asc';
+        ? 'change_pct.desc.nullslast'
+        : 'change_pct.asc.nullslast';
   // 동순위 안정 정렬을 위해 code 보조키 추가(offset 페이지네이션 일관성)
   const q =
     `${LIST_SELECT}&date=eq.${date}&etf_meta.market=eq.${market}` +
@@ -63,16 +64,19 @@ export async function searchByHolding(query: string, limit = 40): Promise<EtfLis
   const date = await latestDate();
   if (!date) return [];
   const enc = encodeURIComponent(`*${query}*`);
+  // 흔한 종목(예: 삼성전자·원화현금)은 200+ ETF에 담겨, 임의 200개만 받아 코드를 자르면
+  // 거래량 상위 ETF가 누락됨. 매칭 코드를 모두 모은 뒤(중복 제거) 시세 쿼리에서
+  // 거래량순 정렬 + limit으로 진짜 상위를 반환하게 함.
   const hits: { code: string }[] = await selectFrom(
     'etf_holding',
-    `select=code&stock_name=ilike.${enc}&limit=200`,
+    `select=code&stock_name=ilike.${enc}&limit=500`,
   );
-  const codes = [...new Set(hits.map((h) => h.code))].slice(0, limit);
+  const codes = [...new Set(hits.map((h) => h.code))];
   if (codes.length === 0) return [];
   const inList = `(${codes.map(encodeURIComponent).join(',')})`;
   return selectFrom(
     'etf_daily_quote',
-    `${LIST_SELECT}&date=eq.${date}&code=in.${inList}&order=volume.desc`,
+    `${LIST_SELECT}&date=eq.${date}&code=in.${inList}&order=volume.desc&limit=${limit}`,
   );
 }
 

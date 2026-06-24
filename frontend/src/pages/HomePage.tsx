@@ -1,10 +1,12 @@
 import { Fragment, useCallback, useState } from 'react';
-import { List, Text, TextField } from '@toss/tds-mobile';
+import { List, Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { ListRow } from '@/components/ListRow';
 import { BannerSlot } from '@/components/BannerSlot';
 import { LoadMore } from '@/components/LoadMore';
 import { FilterChips } from '@/components/FilterChips';
+import { SearchField } from '@/components/SearchField';
+import { AD_IDS } from '@/lib/ads';
 import { MarketToggle } from '@/components/MarketToggle';
 import { useInfiniteList } from '@/hooks/useInfiniteList';
 import { useEtfSearch } from '@/hooks/useEtfSearch';
@@ -22,7 +24,7 @@ const PAGE = 30;
 export function HomePage() {
   const [market, setMarket] = useState<Market>('KR');
   const [mode, setMode] = useState<ListMode>('volume');
-  const { input, setInput, isSearching, result, submit, pickTheme, pickTag, theme, tag } =
+  const { input, setInput, isSearching, result, submit, pickTheme, pickTag, theme, tag, reset } =
     useEtfSearch();
 
   const fetchPage = useCallback(
@@ -32,7 +34,7 @@ export function HomePage() {
   const browse = useInfiniteList(fetchPage, [mode, market], PAGE);
 
   return (
-    <div style={{ padding: '20px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
+    <div style={{ padding: '20px 16px calc(72px + env(safe-area-inset-bottom))', maxWidth: 560, margin: '0 auto' }}>
       <div>
         <Text typography="t3" fontWeight="bold" color={colors.grey900}>
           ETF 인사이트
@@ -44,15 +46,15 @@ export function HomePage() {
         </Text>
       </div>
 
-      {/* 검색 */}
-      <form onSubmit={submit}>
-        <TextField
-          variant="box"
-          placeholder="ETF 이름 또는 종목명 (예: 삼성전자, 반도체)"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-      </form>
+      {/* 검색 — 기본은 돋보기 아이콘, 탭하면 펼쳐짐 */}
+      <SearchField
+        value={input}
+        onChange={setInput}
+        onSubmit={submit}
+        onClear={reset}
+        placeholder="ETF 이름 또는 종목명 (예: 삼성전자, 반도체)"
+        collapsedLabel="ETF·종목 검색"
+      />
 
       {/* 카테고리 칩 (공유 컴포넌트) */}
       <FilterChips activeTheme={theme} activeTag={tag} onPickTheme={pickTheme} onPickTag={pickTag} />
@@ -104,7 +106,7 @@ export function HomePage() {
             {browse.items.map((row, i) => (
               <Fragment key={row.code}>
                 <ListRow row={row} />
-                {i === 6 && <BannerSlot />}
+                {i === 6 && <BannerSlot inline adGroupId={AD_IDS.nativeImage} />}
               </Fragment>
             ))}
           </List>

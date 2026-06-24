@@ -50,4 +50,9 @@ describe('flowSign', () => {
     expect(flowSign(undefined)).toBe(0);
     expect(flowSign('')).toBe(0);
   });
+  it('"-"(데이터 없음)은 유출이 아니라 0', () => {
+    expect(flowSign('-')).toBe(0);
+    expect(flowSign(' - ')).toBe(0);
+    expect(flowSign('N/A')).toBe(0);
+  });
 });

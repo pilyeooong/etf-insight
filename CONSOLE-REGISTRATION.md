@@ -94,8 +94,8 @@ ETF, 이티에프, 미국ETF, 배당ETF, S&P500, 나스닥, 반도체ETF, 괴리
 
 | 광고 | 위치 | 타이밍 | 코드 |
 |---|---|---|---|
-| **배너(인라인)** | 홈 리스트 중간(7행 뒤) | 스크롤 시 자연 노출 | `BannerSlot.tsx` (`TossAds.attachBanner`, variant card) |
-| **배너 이미지(네이티브)** | 상세 본문 중간(기간수익률 뒤) | 스크롤 시 자연 노출 | `BannerSlot inline` (`AD_IDS.nativeImage`) |
+| **이미지 배너(네이티브)** | 홈 리스트 중간(7행 뒤, **1구좌만**) | 스크롤 시 자연 노출 | `HomePage` `BannerSlot inline` (`AD_IDS.nativeImage`) |
+| **문구 배너(인라인)** | 상세 본문 중간(기간수익률 뒤) | 스크롤 시 자연 노출 | `DetailPage` `BannerSlot` (`TossAds.attachBanner`, variant card) |
 | **전면(Interstitial)** | 리스트→상세 진입 전환 | 세션 첫 3회 무광고 + 이후 최소 3분 간격 | `interstitial.ts` (`loadFullScreenAd`/`showFullScreenAd`) |
 | **리워드(보상형)** | 상세 화면 **심화 분석**(동종 그룹 위치·구성 집중도·분배 캘린더·자금 유입 흐름) 잠금 해제 | 사용자가 직접 '광고 보고 심화 분석 보기' 탭할 때만 | `DeepAnalysis.tsx`+`useRewardedAd.ts` (`userEarnedReward`) |
 

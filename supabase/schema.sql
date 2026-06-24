@@ -82,18 +82,7 @@ alter table etf_detail
   add column if not exists net_inflow          jsonb;
 
 -- ─────────────────────────────────────────────
--- 4. 분배금 (발생일에만)
--- ─────────────────────────────────────────────
-create table if not exists etf_dividend (
-  code     text not null references etf_meta(code) on delete cascade,
-  ex_date  date not null,                     -- 분배락일
-  pay_date date,
-  amount   numeric,
-  primary key (code, ex_date)
-);
-
--- ─────────────────────────────────────────────
--- 5. 위험지표 (일배치 계산 결과 캐시 — close 시계열로 산출)
+-- 4. 위험지표 (일배치 계산 결과 캐시 — close 시계열로 산출)
 -- ─────────────────────────────────────────────
 create table if not exists etf_risk (
   code         text primary key references etf_meta(code) on delete cascade,
@@ -111,23 +100,12 @@ create table if not exists etf_risk (
 );
 
 -- ─────────────────────────────────────────────
--- 6. 지수 (홈/지수 페이지)
--- ─────────────────────────────────────────────
-create table if not exists etf_index_daily (
-  code        text not null,                  -- 'KOSPI' / 'KOSDAQ' / 'SP500' ...
-  date        date not null,
-  price       numeric,
-  change_pct  numeric,
-  primary key (code, date)
-);
-
--- ─────────────────────────────────────────────
 -- RLS: 프론트(anon)는 읽기 전용, 쓰기는 service_role(크롤러)만.
 -- ─────────────────────────────────────────────
 do $$
 declare t text;
 begin
-  foreach t in array array['etf_meta','etf_daily_quote','etf_holding','etf_detail','etf_dividend','etf_risk','etf_index_daily']
+  foreach t in array array['etf_meta','etf_daily_quote','etf_holding','etf_detail','etf_risk']
   loop
     execute format('alter table %I enable row level security;', t);
     execute format('drop policy if exists "public read %1$s" on %1$I;', t);

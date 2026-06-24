@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { AdGate } from '@/components/AdGate';
+import { getRewardCredits, grantRewardPass, consumeRewardCredit } from '@/lib/rewardPass';
 import { useAsync } from '@/hooks/useAsync';
 import { parseMonths, freqLabel, flowSign } from '@/lib/dividend';
 import { fetchPeerComparison } from '@/lib/queries';
@@ -19,10 +20,23 @@ export function DeepAnalysisSection({
   holdings: EtfHolding[];
 }) {
   const [revealed, setRevealed] = useState(false);
+  const [credits, setCredits] = useState(() => getRewardCredits());
   const comparison = useAsync(
     () => (revealed ? fetchPeerComparison(meta, detail) : Promise.resolve(null)),
     [revealed, meta.code],
   );
+
+  // 유예 패스로 광고 없이 열람(1회 사용).
+  const revealWithPass = () => {
+    setCredits(consumeRewardCredit());
+    setRevealed(true);
+  };
+  // 광고 시청 완료 — 이후 3회 유예 부여. 시청분은 차감 없이 바로 열람.
+  const onReward = () => {
+    grantRewardPass();
+    setCredits(getRewardCredits());
+    setRevealed(true);
+  };
 
   const hasConc = holdings.filter((h) => h.weight != null && h.weight > 0).length >= 3;
   const maybeHasPeer = Boolean(meta.base_index || meta.category);
@@ -38,14 +52,40 @@ export function DeepAnalysisSection({
         </Text>
       </div>
       {!revealed ? (
-        <>
-          <div style={{ marginBottom: 12, lineHeight: 1.6 }}>
-            <Text typography="st12" color={colors.grey500}>
-              동종 ETF 중 위치·구성 집중도, 분배 캘린더와 자금 유입 흐름을 광고 시청 후 확인할 수 있어요.
-            </Text>
-          </div>
-          <AdGate cta="광고 보고 심화 분석 보기" onRewardGranted={() => setRevealed(true)} />
-        </>
+        credits > 0 ? (
+          // 유예 패스 보유 — 광고 없이 바로 열람
+          <>
+            <div style={{ marginBottom: 12, lineHeight: 1.6 }}>
+              <Text typography="st12" color={colors.grey500}>
+                동종 ETF 중 위치·구성 집중도, 분배 캘린더와 자금 유입 흐름을 광고 없이 바로 볼 수 있어요. (남은 무료 열람 {credits}회)
+              </Text>
+            </div>
+            <button
+              onClick={revealWithPass}
+              style={{
+                width: '100%',
+                padding: '15px 0',
+                borderRadius: 14,
+                border: 'none',
+                cursor: 'pointer',
+                background: colors.blue500,
+              }}
+            >
+              <Text typography="t5" fontWeight="bold" color={colors.white}>
+                심화 분석 바로 보기
+              </Text>
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{ marginBottom: 12, lineHeight: 1.6 }}>
+              <Text typography="st12" color={colors.grey500}>
+                동종 ETF 중 위치·구성 집중도, 분배 캘린더와 자금 유입 흐름을 광고 시청 후 확인할 수 있어요.
+              </Text>
+            </div>
+            <AdGate cta="광고 보고 심화 분석 보기" onRewardGranted={onReward} />
+          </>
+        )
       ) : comparison.loading ? (
         <Text typography="st12" color={colors.grey500}>
           분석 중…
@@ -206,7 +246,7 @@ function NetFlow({ flow }: { flow: NetInflow | null }) {
     { label: '최근 1주', value: flow.cumulativeNetInflow1w },
     { label: '최근 1개월', value: flow.cumulativeNetInflow1m },
     { label: '최근 3개월', value: flow.cumulativeNetInflow3m },
-  ].filter((r) => r.value);
+  ].filter((r) => r.value && r.value.trim() !== '-'); // "-"(데이터 없음, 신규 상장 등) 제외
   if (rows.length === 0) return null;
   const sign = flowSign(flow.cumulativeNetInflow1m);
   const tone = sign > 0 ? '유입세' : sign < 0 ? '유출세' : null;

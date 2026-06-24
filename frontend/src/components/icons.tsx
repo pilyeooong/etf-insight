@@ -35,6 +35,15 @@ export function CloseIcon({ size = 24, color = 'currentColor', strokeWidth = 2 }
   );
 }
 
+export function SearchIcon({ size = 24, color = 'currentColor', strokeWidth = 2 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="11" cy="11" r="7" stroke={color} strokeWidth={strokeWidth} />
+      <path d="m20 20-3.6-3.6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function CompareIcon({ size = 24, color = 'currentColor', strokeWidth = 2 }: IconProps) {
   // 막대 2개(높이 다름) = 나란히 비교
   return (

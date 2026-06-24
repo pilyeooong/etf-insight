@@ -1,8 +1,9 @@
 import { memo, useCallback, useMemo, useState } from 'react';
-import { List, ListRow as TdsListRow, Text, TextField } from '@toss/tds-mobile';
+import { List, ListRow as TdsListRow, Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { LoadMore } from '@/components/LoadMore';
 import { FilterChips } from '@/components/FilterChips';
+import { SearchField } from '@/components/SearchField';
 import { MarketToggle } from '@/components/MarketToggle';
 import { CloseIcon } from '@/components/icons';
 import { useAsync } from '@/hooks/useAsync';
@@ -141,7 +142,7 @@ export function ComparePage() {
   }, []);
 
   return (
-    <div style={{ padding: '20px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
+    <div style={{ padding: '20px 16px calc(72px + env(safe-area-inset-bottom))', maxWidth: 560, margin: '0 auto' }}>
       <div>
         <Text typography="t3" fontWeight="bold" color={colors.grey900}>
           ETF 비교
@@ -206,14 +207,14 @@ export function ComparePage() {
       {/* 검색 + 둘러보기로 추가 (3개 미만일 때) */}
       {picked.length < MAX && (
         <>
-          <form onSubmit={submit}>
-            <TextField
-              variant="box"
-              placeholder="비교할 ETF 검색 (예: KODEX 200)"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-          </form>
+          <SearchField
+            value={input}
+            onChange={setInput}
+            onSubmit={submit}
+            onClear={reset}
+            placeholder="비교할 ETF 검색 (예: KODEX 200)"
+            collapsedLabel="ETF 검색"
+          />
 
           {/* 카테고리 칩 (공유 컴포넌트) */}
           <FilterChips activeTheme={theme} activeTag={tag} onPickTheme={pickTheme} onPickTag={pickTag} />

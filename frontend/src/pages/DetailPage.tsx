@@ -1,11 +1,9 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Text } from '@toss/tds-mobile';
 import { colors } from '@toss/tds-colors';
 import { BannerSlot } from '@/components/BannerSlot';
-import { BackIcon } from '@/components/icons';
 import { DonutChart } from '@/components/DonutChart';
 import { DeepAnalysisSection } from '@/components/DeepAnalysis';
-import { AD_IDS } from '@/lib/ads';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchDetailBundle } from '@/lib/queries';
 import { fmt, marketCap, pct, price, signColor, won억 } from '@/lib/format';
@@ -38,7 +36,6 @@ const SECTOR_EXCLUDE = new Set(['UNCLASSIFIED']);
 
 export function DetailPage() {
   const { code = '' } = useParams();
-  const navigate = useNavigate();
   const { data, loading, error } = useAsync(() => fetchDetailBundle(code), [code]);
 
   if (loading) return <Centered>불러오는 중…</Centered>;
@@ -67,14 +64,8 @@ export function DetailPage() {
   }));
 
   return (
-    <div style={{ padding: '8px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
-      <button
-        onClick={() => navigate(-1)}
-        aria-label="뒤로"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 4px 8px 0', display: 'inline-flex' }}
-      >
-        <BackIcon size={24} color={colors.grey700} />
-      </button>
+    <div style={{ padding: '16px 16px calc(72px + env(safe-area-inset-bottom))', maxWidth: 560, margin: '0 auto' }}>
+      {/* 뒤로가기는 앱인토스 글로벌 네비게이션 바를 사용(자체 버튼 중복 제거) */}
 
       {/* 헤더 */}
       <div style={{ marginBottom: 6 }}>
@@ -97,6 +88,13 @@ export function DetailPage() {
           {pct(quote?.change_pct)}
         </Text>
       </div>
+      {quote?.date && (
+        <div style={{ marginBottom: 8 }}>
+          <Text typography="st12" color={colors.grey400}>
+            {quote.date} 종가 기준
+          </Text>
+        </div>
+      )}
       {/* KR만 NAV/괴리율/추적오차 (미국 ETF는 무의미) */}
       {!isUS && (
         <div style={{ marginBottom: 16 }}>
@@ -140,6 +138,13 @@ export function DetailPage() {
         </Grid>
       </Card>
 
+      {/* 국내: 요약 바로 아래 문구 배너 (US는 기간수익률 뒤) */}
+      {!isUS && (
+        <div style={{ marginTop: 16 }}>
+          <BannerSlot />
+        </div>
+      )}
+
       {/* 기간 수익률 */}
       {periods.length > 0 && (
         <Section title="기간 수익률">
@@ -160,8 +165,8 @@ export function DetailPage() {
         </Section>
       )}
 
-      {/* 본문 중간 — 피드형(네이티브 이미지) 배너 */}
-      <BannerSlot inline adGroupId={AD_IDS.nativeImage} />
+      {/* 미국: 기간수익률 뒤 문구 배너 (국내는 요약 바로 아래) */}
+      {isUS && <BannerSlot />}
 
       {/* 주요 구성종목 — 비중 도넛 */}
       {holdingSlices.length > 0 ? (

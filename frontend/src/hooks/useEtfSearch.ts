@@ -17,8 +17,8 @@ export function useEtfSearch() {
   const result = useAsync(() => searchEtfs(theme ?? query, tag), [query, tag, theme]);
 
   const submit = useCallback(
-    (e: FormEvent) => {
-      e.preventDefault();
+    (e?: FormEvent) => {
+      e?.preventDefault();
       setTag(null);
       setTheme(null);
       setQuery(input);

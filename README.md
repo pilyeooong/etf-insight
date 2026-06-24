@@ -10,7 +10,7 @@ GitHub Actions (평일 18:30 KST, cron)
        ├ stage2: 네이버 etfAnalysis(종목별) → 메타·수익률·섹터·TOP10·분배·괴리/추적오차
        └ stage3: 네이버 해외 basic(큐레이션 ~110종목) → 미국 상장 ETF 시세·배당
 Supabase (free)
-  ├ Postgres   : etf_meta / etf_daily_quote / etf_detail / etf_risk / etf_holding / etf_dividend / etf_index_daily
+  ├ Postgres   : etf_meta / etf_daily_quote / etf_detail / etf_risk / etf_holding
   └ PostgREST  : 프론트가 anon 키로 읽기 (RLS: public read)
 frontend/  Granite(Vite+React+TS) + TDS : 홈/검색/상세 3개 화면
 ```
